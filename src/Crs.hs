@@ -383,6 +383,7 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                            "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
                            "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++ 
                            "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
+                           "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++   
                            "cellranger count" ++ " " ++
                            "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
                            "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
@@ -427,6 +428,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                               (extractBsubMemory 
                                                                               (extractLsfVariables opts))) 
                                                                            ++ "]\""
+                                                            ,"-a"
+                                                            ,"'docker0(" ++ (extractBsubDocker (extractLsfVariables opts))
+                                                                         ++ ")'"
                                                             ,"cellranger"
                                                             ,"count"
                                                             ,"--localmem=" ++ (extractLocalMemory 
@@ -472,6 +476,7 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                            "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
                            "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++
                            "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
+                           "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++
                            "cellranger count" ++ " " ++
                            "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
                            "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
@@ -511,6 +516,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                                    (extractBsubMemory
                                                                                    (extractLsfVariables opts)))
                                                                                 ++ "]"
+                                                            ,"-a"
+                                                            ,"'docker0(" ++ (extractBsubDocker (extractLsfVariables opts))
+                                                                         ++ ")'"
                                                             ,"span[hosts=1]"
                                                             ,"rusage[mem=" ++ (extractResourceRequirementUsage
                                                                               (extractBsubMemory
