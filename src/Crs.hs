@@ -813,6 +813,8 @@ processArgsAndFiles (options,inputfiles) = do
 
 main :: IO ()
 main = do
+    --Set output buffering.
+    hSetBuffering stdout NoBuffering
     --Get command line arguments.
     (args,files) <- SE.getArgs >>= compilerOpts
     --See if files is null
