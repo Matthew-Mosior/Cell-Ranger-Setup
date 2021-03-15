@@ -155,20 +155,20 @@ extractResultDirectory (CRSConfig _ _ _ x _ _ _ _ _) = DText.unpack x
 --extractTranscriptomeDirectoryPath -> This function will
 --extract the string associated with
 --transcriptomedirpath.
-extractTranscriptomeDirectoryPath :: CRSConfig -> Maybe String
-extractTranscriptomeDirectoryPath (CRSConfig _ _ _ _ x _ _ _ _) = Just (DText.unpack (DMaybe.fromJust x))
+extractTranscriptomeDirectoryPath :: CRSConfig -> Maybe Text
+extractTranscriptomeDirectoryPath (CRSConfig _ _ _ _ x _ _ _ _) = x
 
 --extractFeatureReferencePath -> This function will
 --extract the string associated with
 --featurerefpath.
-extractFeatureReferencePath :: CRSConfig -> Maybe String
-extractFeatureReferencePath (CRSConfig _ _ _ _ _ x _ _ _) = Just (DText.unpack (DMaybe.fromJust x))
+extractFeatureReferencePath :: CRSConfig -> Maybe Text
+extractFeatureReferencePath (CRSConfig _ _ _ _ _ x _ _ _) = x
 
 --extractVdjReferenceDirectoryPath -> This function will
 --extract the string associated with
 --vdjreferencedirpath.
-extractVdjReferenceDirectoryPath :: CRSConfig -> Maybe String
-extractVdjReferenceDirectoryPath (CRSConfig _ _ _ _ _ _ x _ _) = Just (DText.unpack (DMaybe.fromJust x))
+extractVdjReferenceDirectoryPath :: CRSConfig -> Maybe Text
+extractVdjReferenceDirectoryPath (CRSConfig _ _ _ _ _ _ x _ _) = x
 
 --extractLsfVariables -> This function will
 --extract the string associated with
