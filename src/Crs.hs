@@ -353,7 +353,7 @@ removeDupLibrariesCsv ((x,y,z):xs) opts = do
     let rundir = extractRunDirectory opts
     --Remove duplicate lines.
     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                       ++ "Removing duplicated lines from " ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv ...")
+                      ++ "Removing duplicated lines from " ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv ...")
     (_,_,_,ph) <- SP.createProcess (SP.proc "gawk" ["-i","inplace","!seen[$0]++",rundir ++ "cellranger/" ++ x ++ "/libraries.csv"])
     ec <- SP.waitForProcess ph
     case ec of
@@ -371,6 +371,36 @@ removeDupLibrariesCsv ((x,y,z):xs) opts = do
 
 {--------------------------------------------}
 
+
+{-Export LSF environment variables.-}
+
+--setLSFEnvironmentVariables -> This function will
+--set LSF environment variables using the configuration
+--YAML.
+setLSFEnvironmentVariables :: CRSConfig -> IO ()
+setLSFEnvironmentVariables opts = do
+    !currenttandd <- DTime.getZonedTime
+    --Set LSF environment variables.
+    SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                      ++ "Setting LSF_DOCKER_VOLUMES environment variable(s) specified in configuration YAML ...")
+    (_,_,_,ph) <- SP.createProcess (SP.proc "export" ["LSF_DOCKER_VOLUMES=$(echo \""
+                                                       ++ (DL.intercalate " "
+                                                          (DL.map
+                                                          (DText.unpack)
+                                                          (extractLsfDockerVolumes
+                                                          (extractLsfVariables opts)))) ++ "\")"])
+    ec <- SP.waitForProcess ph
+    case ec of
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] "
+                                          ++ "Could not set LSF_DOCKER_VOLUMES environment variable(s).")
+        SX.ExitSuccess   -> do --Print out created cellranger sub-directory.
+                               !currenttandd <- DTime.getZonedTime
+                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                 ++ "Set LSF_DOCKER_VOLUMES environment variable(s).")
+    
+
+{-----------------------------------}
 
 {-Create and submit bsub commands via LSF.-}
 
@@ -393,35 +423,25 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
              SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                                 ++ "Constructing and submitting " ++ x ++ " bsub command via LSF ...")
              SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " ++ "bsub" ++ " " ++
-                            "LSF_DOCKER_VOLUMES=$(echo \"" ++ (DL.intercalate " "
-                                                              (DL.map
-                                                              (DText.unpack)
-                                                              (extractLsfDockerVolumes
-                                                              (extractLsfVariables opts)))) ++ "\")" ++ " " ++
-                            "-notify" ++ " " ++
-                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
-                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts)) 
-                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
-                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
-                            "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
-                            "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
-                            "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
-                            "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++ 
-                            "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
-                            "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++   
-                            "cellranger count" ++ " " ++
-                            "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
-                            "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
-                            "--id=" ++ finalid ++ " " ++ 
-                            "--transcriptome=" ++ (DText.unpack (DMaybe.fromJust (extractTranscriptomeDirectoryPath opts))) ++ " " ++
-                            "--featureref=" ++ (DText.unpack (DMaybe.fromJust (extractFeatureReferencePath opts))) ++ " " ++
-                            "--libraries=" ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv")
-             (_,_,_,ph) <- SP.createProcess (SP.proc "bsub" ["LSF_DOCKER_VOLUMES=$(echo \"" ++ (DL.intercalate " "
-                                                             (DL.map
-                                                             (DText.unpack)
-                                                             (extractLsfDockerVolumes
-                                                             (extractLsfVariables opts)))) ++ "\")"
-                                                            ,"-notify"
+                           "-notify" ++ " " ++
+                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                           "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts)) 
+                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
+                           "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
+                           "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
+                           "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
+                           "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
+                           "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++ 
+                           "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
+                           "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++   
+                           "cellranger count" ++ " " ++
+                           "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
+                           "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
+                           "--id=" ++ finalid ++ " " ++ 
+                           "--transcriptome=" ++ (DText.unpack (DMaybe.fromJust (extractTranscriptomeDirectoryPath opts))) ++ " " ++
+                           "--featureref=" ++ (DText.unpack (DMaybe.fromJust (extractFeatureReferencePath opts))) ++ " " ++
+                           "--libraries=" ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv")
+             (_,_,_,ph) <- SP.createProcess (SP.proc "bsub" ["-notify"
                                                             ,"-J"
                                                             ,(extractLsfJobName 
                                                              (extractLsfVariables opts)) 
@@ -502,34 +522,24 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
              SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
                                 ++ "Constructing and submitting " ++ x ++ " bsub command via LSF ...")
              SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " ++ "bsub" ++ " " ++
-                            "LSF_DOCKER_VOLUMES=$(echo \"" ++ (DL.intercalate " "
-                                                              (DL.map
-                                                              (DText.unpack)
-                                                              (extractLsfDockerVolumes
-                                                              (extractLsfVariables opts)))) ++ "\")" ++ " " ++
-                            "-notify" ++ " " ++
-                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
-                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
-                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
-                            "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
-                            "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
-                            "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
-                            "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++
-                            "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
-                            "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++
-                            "cellranger count" ++ " " ++
-                            "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
-                            "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
-                            "--id=" ++ finalid ++ " " ++
-                            "--transcriptome=" ++ (DText.unpack (DMaybe.fromJust (extractTranscriptomeDirectoryPath opts))) ++ " " ++ 
-                            "--libraries=" ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv")
-             (_,_,_,ph) <- SP.createProcess (SP.proc "bsub" ["LSF_DOCKER_VOLUMES=$(echo \"" ++ (DL.intercalate " "
-                                                             (DL.map
-                                                             (DText.unpack)
-                                                             (extractLsfDockerVolumes
-                                                             (extractLsfVariables opts)))) ++ "\")"
-                                                            ,"-notify"
+                           "-notify" ++ " " ++
+                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                           "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
+                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
+                           "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
+                           "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
+                           "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
+                           "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
+                           "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++
+                           "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
+                           "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++
+                           "cellranger count" ++ " " ++
+                           "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
+                           "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
+                           "--id=" ++ finalid ++ " " ++
+                           "--transcriptome=" ++ (DText.unpack (DMaybe.fromJust (extractTranscriptomeDirectoryPath opts))) ++ " " ++ 
+                           "--libraries=" ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv")
+             (_,_,_,ph) <- SP.createProcess (SP.proc "bsub" ["-notify"
                                                             ,"-J"
                                                             ,(extractLsfJobName
                                                              (extractLsfVariables opts))
@@ -605,35 +615,25 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
              SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                                 ++ "Constructing and submitting " ++ x ++ " bsub command via LSF ...")
              SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " ++ "bsub" ++ " " ++
-                            "LSF_DOCKER_VOLUMES=$(echo \"" ++ (DL.intercalate " "
-                                                              (DL.map
-                                                              (DText.unpack)
-                                                              (extractLsfDockerVolumes
-                                                              (extractLsfVariables opts)))) ++ "\")" ++ " " ++
-                            "-notify" ++ " " ++
-                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
-                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++  " " ++
-                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
-                            "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
-                            "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
-                            "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
-                            "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++
-                            "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
-                            "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++
-                            "cellranger count" ++ " " ++
-                            "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
-                            "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
-                            "--id=" ++ x ++ " " ++
-                            "--sampleid=" ++ finalid ++ " " ++
-                            "--reference=" ++ (DText.unpack (DMaybe.fromJust (extractVdjReferenceDirectoryPath opts))) ++ " " ++
-                            "--fastqs=" ++ (rundir ++ "data/" ++ x ++ "/"))
-             (_,_,_,ph) <- SP.createProcess (SP.proc "bsub" ["LSF_DOCKER_VOLUMES=$(echo \"" ++ (DL.intercalate " "
-                                                             (DL.map
-                                                             (DText.unpack)
-                                                             (extractLsfDockerVolumes
-                                                             (extractLsfVariables opts)))) ++ "\")"
-                                                            ,"-notify"
+                           "-notify" ++ " " ++
+                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                           "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
+                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++  " " ++
+                           "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
+                           "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
+                           "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
+                           "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
+                           "-R \"select[mem>" ++ (extractResourceRequirementSelect (extractBsubMemory (extractLsfVariables opts))) ++
+                           "] span[hosts=1] rusage[mem=" ++ (extractResourceRequirementUsage (extractBsubMemory (extractLsfVariables opts))) ++ "]\"" ++ " " ++
+                           "-a 'docker0(" ++ (extractBsubDocker (extractLsfVariables opts)) ++ ")'" ++ " " ++
+                           "cellranger count" ++ " " ++
+                           "--localmem=" ++ (extractLocalMemory (extractCellRangerOptions opts)) ++ " " ++
+                           "--localcores=" ++ (extractLocalCores (extractCellRangerOptions opts)) ++ " " ++
+                           "--id=" ++ x ++ " " ++
+                           "--sampleid=" ++ finalid ++ " " ++
+                           "--reference=" ++ (DText.unpack (DMaybe.fromJust (extractVdjReferenceDirectoryPath opts))) ++ " " ++
+                           "--fastqs=" ++ (rundir ++ "data/" ++ x ++ "/"))
+             (_,_,_,ph) <- SP.createProcess (SP.proc "bsub" ["-notify"
                                                             ,"-J"
                                                             ,(extractLsfJobName
                                                              (extractLsfVariables opts))
@@ -837,6 +837,8 @@ processArgsAndFiles (options,inputfiles) = do
                       createLibrariesCsv (DL.tail uniqsamplesprotocolsfilenames) decodedinputyaml
                       --Remove duplicate lines from libraries.csv files.
                       removeDupLibrariesCsv (DL.tail nubuniqsamplesprotocolsfilenames) decodedinputyaml
+                      --Set LSF environment variables.
+                      setLSFEnvironmentVariables decodedinputyaml
                       --Submit bsub commands to LSF,
                       --and wait for the bsub commands to finish.
                       createAndSubmitBsubCommands (DL.tail nubuniqsamplesprotocolsfilenames) 
