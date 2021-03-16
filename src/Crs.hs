@@ -479,6 +479,7 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                             ++ "cellranger/" 
                                                                             ++ x 
                                                                             ++ "/libraries.csv"])
+                                            {cwd = Just ((extractRunDirectory opts) ++ "cellranger/" ++ x)}
              ec <- SP.waitForProcess ph
              case ec of
                  SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
@@ -583,6 +584,7 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                             ++ "cellranger/"
                                                                             ++ x
                                                                             ++ "/libraries.csv"])
+                                            {cwd = Just ((extractRunDirectory opts) ++ "cellranger/" ++ x)}
              ec <- SP.waitForProcess ph
              case ec of
                  SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
@@ -687,6 +689,7 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                          ++ "data/" 
                                                                          ++ x 
                                                                          ++ "/"])
+                                            {cwd = Just ((extractRunDirectory opts) ++ "cellranger/" ++ x)}
              ec <- SP.waitForProcess ph
              case ec of
                  SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
