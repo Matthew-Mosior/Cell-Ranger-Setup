@@ -61,7 +61,8 @@ data LSF = LSF { lsfdockervolumes   :: [Text]
                , lsfcomputegroup    :: Text
                , lsfjobname         :: Text
                , lsfqueue           :: Text
-               , bsuboo             :: Text
+               , bsuboodir          :: Text
+               , bsubooprefix       :: Text
                , bsubdocker         :: Text
                , bsubcores          :: Text
                , bsubmemory         :: BsubMEM
@@ -101,7 +102,8 @@ parseLSF v = LSF
     <*> v .: "lsf_compute_group"
     <*> v .: "lsf_job_name"
     <*> v .: "lsf_queue"
-    <*> v .: "bsub_oo"
+    <*> v .: "bsub_oo_directory"
+    <*> v .: "bsub_oo_prefix"
     <*> v .: "bsub_docker"
     <*> v .: "bsub_cores"
     <*> v .: "bsub_memory"
@@ -186,55 +188,61 @@ extractCellRangerOptions (CRSConfig _ _ _ _ _ _ _ _ x) = x
 --extract the string associated with
 --lsfdockervolumes.
 extractLsfDockerVolumes :: LSF -> [Text]
-extractLsfDockerVolumes (LSF x _ _ _ _ _ _ _ _) = x
+extractLsfDockerVolumes (LSF x _ _ _ _ _ _ _ _ _) = x
 
 --extractLsfJobGroup -> This function will
 --extract the string associated with
 --lsfjobgroup.
 extractLsfJobGroup :: LSF -> String
-extractLsfJobGroup (LSF _ x _ _ _ _ _ _ _) = DText.unpack x
+extractLsfJobGroup (LSF _ x _ _ _ _ _ _ _ _) = DText.unpack x
 
 --extractLsfComputeGroup -> This function will
 --extract the string associated with
 --lsfcomputegroup.
 extractLsfComputeGroup :: LSF -> String
-extractLsfComputeGroup (LSF _ _ x _ _ _ _ _ _) = DText.unpack x
+extractLsfComputeGroup (LSF _ _ x _ _ _ _ _ _ _) = DText.unpack x
 
 --extractLsfJobName -> This function will
 --extract the string associated with
 --lsfjobname.
 extractLsfJobName :: LSF -> String
-extractLsfJobName (LSF _ _ _ x _ _ _ _ _) = DText.unpack x
+extractLsfJobName (LSF _ _ _ x _ _ _ _ _ _) = DText.unpack x
 
 --extractLsfQueue -> This function will
 --extract the string associated with
 --lsfqueue.
 extractLsfQueue :: LSF -> String
-extractLsfQueue (LSF _ _ _ _ x _ _ _ _) = DText.unpack x
+extractLsfQueue (LSF _ _ _ _ x _ _ _ _ _) = DText.unpack x
 
---extractBsubOo -> This function will
+--extractBsubOoDirectory -> This function will
 --extract the string associated with
---bsuboo.
-extractBsubOo :: LSF -> String
-extractBsubOo (LSF _ _ _ _ _ x _ _ _) = DText.unpack x
+--bsuboodir.
+extractBsubOoDirectory :: LSF -> String
+extractBsubOoDirectory (LSF _ _ _ _ _ x _ _ _ _) = DText.unpack x
+
+--extractBsubOoPrefix -> This function will
+--extract the string associated with
+--bsubooprefix.
+extractBsubOoPrefix :: LSF -> String
+extractBsubOoPrefix (LSF _ _ _ _ _ _ x _ _ _) = DText.unpack x
 
 --extractBsubDocker -> This function will
 --extract the string associated with
 --bsubdocker.
 extractBsubDocker :: LSF -> String
-extractBsubDocker (LSF _ _ _ _ _ _ x _ _) = DText.unpack x
+extractBsubDocker (LSF _ _ _ _ _ _ _ x _ _) = DText.unpack x
 
 --extractBsubCores -> This function will
 --extract the string associated with
 --bsubcores.
 extractBsubCores :: LSF -> String
-extractBsubCores (LSF _ _ _ _ _ _ _ x _) = DText.unpack x
+extractBsubCores (LSF _ _ _ _ _ _ _ _ x _) = DText.unpack x
 
 --extractBsubMemory -> This function will
 --extract the string associated with
 --bsubmemory.
 extractBsubMemory :: LSF -> BsubMEM
-extractBsubMemory (LSF _ _ _ _ _ _ _ _ x) = x
+extractBsubMemory (LSF _ _ _ _ _ _ _ _ _ x) = x
 
 --extractMemoryLimit -> This function will
 --extract the string associated with

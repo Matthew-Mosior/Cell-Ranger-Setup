@@ -112,8 +112,10 @@ createRunDirectory opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [extractRunDirectory opts])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " ++ "Could not create " ++ (extractRunDirectory opts) ++ ".")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " ++ "Could not create " ++ (extractRunDirectory opts) ++ ".")
         SX.ExitSuccess   -> do --Print out created run directory.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " ++ "Created " ++ (extractRunDirectory opts) ++ ".")
 
 {-----------------------}
@@ -132,11 +134,13 @@ createDataSubDirectory opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [(extractRunDirectory opts) ++ "data/"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not create" ++ (extractRunDirectory opts) ++ "data/")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not create" ++ (extractRunDirectory opts) ++ "data/")
         SX.ExitSuccess   -> do --Print out created cellranger sub-directory.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Created " ++ (extractRunDirectory opts) ++ "data/.")
+                                                 ++ "Created " ++ (extractRunDirectory opts) ++ "data/.")
 
 {---------------------------}
 
@@ -154,11 +158,13 @@ createCellRangerSubDirectory opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [(extractRunDirectory opts) ++ "cellranger/"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not create " ++ (extractRunDirectory opts) ++ "cellranger/")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not create " ++ (extractRunDirectory opts) ++ "cellranger/")
         SX.ExitSuccess   -> do --Print out created cellranger sub-directory.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Created " ++ (extractRunDirectory opts) ++ "cellranger/.")
+                                                 ++ "Created " ++ (extractRunDirectory opts) ++ "cellranger/.")
 
 
 {----------------------------------}
@@ -181,23 +187,27 @@ createAllSampleDirectories (x:xs) opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [rundir ++ "cellranger/" ++ x ++ "/"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not create " ++ rundir ++ "cellranger/" ++ x ++ "/")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not create " ++ rundir ++ "cellranger/" ++ x ++ "/")
         SX.ExitSuccess   -> do --Print out created run directory.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Created " ++ rundir ++ "cellranger/" ++ x ++ "/.")
+                                                 ++ "Created " ++ rundir ++ "cellranger/" ++ x ++ "/.")
                                --Call createProcess to spawn new process to create current
                                --data sample directory.
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Creating " ++ x ++ " data sample directory ...")
+                                                 ++ "Creating " ++ x ++ " data sample directory ...")
                                (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [rundir ++ "data/" ++ x ++ "/"])
                                ec <- SP.waitForProcess ph
                                case ec of
-                                   SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                                                  ++ "Could not create " ++ rundir ++ "data/" ++ x ++ "/")
+                                   SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                                          error ("[" ++ (show currenttandd) ++ "] " 
+                                                                     ++ "Could not create " ++ rundir ++ "data/" ++ x ++ "/")
                                    SX.ExitSuccess   -> do --Print out created run directory.
+                                                          !currenttandd <- DTime.getZonedTime
                                                           SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                                             ++ "Created " ++ rundir ++ "data/" ++ x ++ "/.")  
+                                                                            ++ "Created " ++ rundir ++ "data/" ++ x ++ "/.")  
                                                           --Recurse.
                                                           createAllSampleDirectories xs opts 
 
@@ -218,11 +228,13 @@ createAllSubRunDirectories ((x,y):xs) opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [rundir ++ "data/" ++ x ++ "/" ++ y ++ "/"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not create " ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not create " ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
         SX.ExitSuccess   -> do --Print out created run directory.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Created " ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
+                                                 ++ "Created " ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
                                --Recurse.
                                createAllSubRunDirectories xs opts 
 
@@ -249,11 +261,15 @@ copyFastqFilesToSampleDirectories ((x,y,z):xs) opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "cp" [fastqdir ++ z,rundir ++ "data/" ++ x ++ "/" ++ y ++ "/"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not copy " ++ fastqdir ++ z ++ " to " ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not copy " ++ fastqdir ++ z ++ " to " 
+                                          ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
         SX.ExitSuccess   -> do --Print out copied fastq.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Copied " ++ fastqdir ++ z ++ " to " ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
+                                                 ++ "Copied " ++ fastqdir ++ z ++ " to " 
+                                                 ++ rundir ++ "data/" ++ x ++ "/" ++ y ++ "/.")
                                --Recurse.
                                copyFastqFilesToSampleDirectories xs opts 
 
@@ -327,6 +343,8 @@ createLibrariesCsv ((x,y,z):xs) opts = do
 
 {-Remove duplicate lines from libraries.csv.-}
 
+--removeDupLibrariesCsv -> This function will
+--remove duplicated lines in each libraries.csv file.
 removeDupLibrariesCsv :: [(String,String,String)] -> CRSConfig -> IO ()
 removeDupLibrariesCsv []           _    = return ()
 removeDupLibrariesCsv ((x,y,z):xs) opts = do
@@ -339,11 +357,15 @@ removeDupLibrariesCsv ((x,y,z):xs) opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "gawk" ["-i","inplace","!seen[$0]++",rundir ++ "cellranger/" ++ x ++ "/libraries.csv"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not remove duplicated lines from " ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv.")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not remove duplicated lines from " ++ rundir 
+                                          ++ "cellranger/" ++ x ++ "/libraries.csv.")
         SX.ExitSuccess   -> do --Print out created run directory.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Removed duplicated lines from " ++ rundir ++ "cellranger/" ++ x ++ "/libraries.csv.")
+                                                 ++ "Removed duplicated lines from " ++ rundir 
+                                                 ++ "cellranger/" ++ x ++ "/libraries.csv.")
                                --Recurse.
                                removeDupLibrariesCsv xs opts
 
@@ -378,7 +400,8 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                               (extractLsfVariables opts)))) ++ "\")" ++ " " ++
                             "-notify" ++ " " ++
                             "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
-                            "-oo " ++ (extractBsubOo (extractLsfVariables opts))           ++  " " ++
+                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts)) 
+                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
                             "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                             "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                             "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -406,8 +429,14 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                              ++ (show a)
                                                              ++ "]" 
                                                             ,"-oo"
-                                                            ,(extractBsubOo 
+                                                            ,(extractBsubOoDirectory 
                                                              (extractLsfVariables opts))
+                                                             ++ (extractBsubOoPrefix
+                                                                (extractLsfVariables opts))
+                                                             ++ "["
+                                                             ++ (show a)
+                                                             ++ "]"
+                                                             ++ ".log"
                                                             ,"-M"
                                                             ,(extractMemoryLimit 
                                                              (extractBsubMemory 
@@ -452,11 +481,15 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                             ++ "/libraries.csv"])
              ec <- SP.waitForProcess ph
              case ec of
-                 SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                                ++ "Could not successfully construct and submit the above bsub command for " ++ x ++ " via LSF.")
+                 SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                        error ("[" ++ (show currenttandd) ++ "] " 
+                                                   ++ "Could not successfully construct and submit the above bsub command for " 
+                                                   ++ x ++ " via LSF.")
                  SX.ExitSuccess   -> do --Print out created run directory.
+                                        !currenttandd <- DTime.getZonedTime
                                         SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                           ++ "Successfully constructed and submitted the above bsub command for " ++ x ++ " via LSF.")
+                                                          ++ "Successfully constructed and submitted the above bsub command for " 
+                                                          ++ x ++ " via LSF.")
        | DL.isInfixOf "10x_5'_FeatureBarcoding" y ||
          DL.isInfixOf "10x_SC_5'_V2_GEX" y &&
          (extractFeatureReferencePath opts) == Nothing
@@ -475,7 +508,8 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                               (extractLsfVariables opts)))) ++ "\")" ++ " " ++
                             "-notify" ++ " " ++
                             "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
-                            "-oo " ++ (extractBsubOo (extractLsfVariables opts))           ++  " " ++
+                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
+                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
                             "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                             "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                             "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -502,8 +536,14 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                              ++ (show a)
                                                              ++ "]"
                                                             ,"-oo"
-                                                            ,(extractBsubOo
+                                                            ,(extractBsubOoDirectory
                                                              (extractLsfVariables opts))
+                                                             ++ (extractBsubOoPrefix
+                                                                (extractLsfVariables opts))
+                                                             ++ "["
+                                                             ++ (show a)
+                                                             ++ "]"
+                                                             ++ ".log"
                                                             ,"-M"
                                                             ,(extractMemoryLimit
                                                              (extractBsubMemory
@@ -545,11 +585,15 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                             ++ "/libraries.csv"])
              ec <- SP.waitForProcess ph
              case ec of
-                 SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] "
-                                                ++ "Could not successfully construct and submit the above bsub command for " ++ x ++ " via LSF.")
+                 SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                        error ("[" ++ (show currenttandd) ++ "] "
+                                                   ++ "Could not successfully construct and submit the above bsub command for " 
+                                                   ++ x ++ " via LSF.")
                  SX.ExitSuccess   -> do --Print out created run directory.
+                                        !currenttandd <- DTime.getZonedTime
                                         SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                           ++ "Successfully constructed and submitted the above bsub command for " ++ x ++ " via LSF.")
+                                                          ++ "Successfully constructed and submitted the above bsub command for " 
+                                                          ++ x ++ " via LSF.")
        | otherwise
        -> do --Create the bsub command.
              --Extract the run directory.
@@ -566,7 +610,8 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                               (extractLsfVariables opts)))) ++ "\")" ++ " " ++
                             "-notify" ++ " " ++
                             "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
-                            "-oo " ++ (extractBsubOo (extractLsfVariables opts)) ++  " " ++
+                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
+                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++  " " ++
                             "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                             "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                             "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -594,8 +639,14 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                              ++ (show a)
                                                              ++ "]"
                                                             ,"-oo"
-                                                            ,(extractBsubOo
+                                                            ,(extractBsubOoDirectory
                                                              (extractLsfVariables opts))
+                                                             ++ (extractBsubOoPrefix
+                                                                (extractLsfVariables opts))
+                                                             ++ "["
+                                                             ++ (show a)
+                                                             ++ "]"
+                                                             ++ ".log"
                                                             ,"-M"
                                                             ,(extractMemoryLimit
                                                              (extractBsubMemory
@@ -638,11 +689,15 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                                          ++ "/"])
              ec <- SP.waitForProcess ph
              case ec of
-                 SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                                ++ "Could not successfully construct and submit the above bsub command for " ++ x ++ " via LSF.")
+                 SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                        error ("[" ++ (show currenttandd) ++ "] " 
+                                                   ++ "Could not successfully construct and submit the above bsub command for " 
+                                                   ++ x ++ " via LSF.")
                  SX.ExitSuccess   -> do --Print out created run directory.
+                                        !currenttandd <- DTime.getZonedTime
                                         SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                           ++ "Successfully constructed and submitted the above bsub command for " ++ x ++ " via LSF.")
+                                                          ++ "Successfully constructed and submitted the above bsub command for " 
+                                                          ++ x ++ " via LSF.")
 
 {-----------------------------------------}
 
@@ -656,18 +711,20 @@ waitOnJobsBwait opts = do
     !currenttandd <- DTime.getZonedTime
     --Wait on jobs.
     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                       ++ "Using bwait to wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                       ++ " to finish.")
+                      ++ "Using bwait to wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
+                      ++ " to finish.")
     (_,_,_,ph) <- SP.createProcess (SP.proc "bwait" ["-w","'ended(" ++ (extractLsfJobName (extractLsfVariables opts)) ++ ")'"])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                       ++ " job to finish via bwait command.")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
+                                          ++ " job to finish via bwait command.")
         SX.ExitSuccess   -> do --Print out created run directory.
-                            SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                               ++ "Job " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                               ++ " finished via bwait command.")
+                               !currenttandd <- DTime.getZonedTime
+                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
+                                                 ++ "Job " ++ (extractLsfJobName (extractLsfVariables opts)) 
+                                                 ++ " finished via bwait command.")
 
 {-------------------}
 
@@ -683,9 +740,13 @@ createResultsDirectory opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "mkdir" [extractResultDirectory opts])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " ++ "Could not create " ++ (extractResultDirectory opts) ++ ".")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " ++ "Could not create " 
+                                          ++ (extractResultDirectory opts) ++ ".")
         SX.ExitSuccess   -> do --Print out created run directory.
-                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " ++ "Created " ++ (extractResultDirectory opts) ++ ".")
+                               !currenttandd <- DTime.getZonedTime
+                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " ++ "Created " 
+                                                 ++ (extractResultDirectory opts) ++ ".")
 
 {-----------------------}
 
@@ -705,24 +766,29 @@ copyToResultsDirRemoveRunDir opts = do
     (_,_,_,ph) <- SP.createProcess (SP.proc "cp" ["-r",extractRunDirectory opts,extractResultDirectory opts])
     ec <- SP.waitForProcess ph
     case ec of
-        SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                       ++ "Could not copy (cp -r) " ++ (extractRunDirectory opts) ++ " to " 
-                                       ++ (extractResultDirectory opts) ++ ".")
+        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                               error ("[" ++ (show currenttandd) ++ "] " 
+                                          ++ "Could not copy (cp -r) " ++ (extractRunDirectory opts) ++ " to " 
+                                          ++ (extractResultDirectory opts) ++ ".")
         SX.ExitSuccess   -> do --Print out successful copy.
+                               !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Successfully copied (cp -r) " ++ (extractRunDirectory opts) ++ " to " 
-                                                  ++ (extractResultDirectory opts) ++ ".")
+                                                 ++ "Successfully copied (cp -r) " ++ (extractRunDirectory opts) ++ " to " 
+                                                 ++ (extractResultDirectory opts) ++ ".")
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                  ++ "Removing " ++ (extractRunDirectory opts) ++ ".")
+                                                 ++ "Removing " ++ (extractRunDirectory opts) ++ ".")
                                (_,_,_,ph) <- SP.createProcess (SP.proc "rm" ["-r","-f",extractRunDirectory opts])
                                ec <- SP.waitForProcess ph
                                case ec of
-                                   SX.ExitFailure _ -> error ("[" ++ (show currenttandd) ++ "] " 
-                                                                  ++ "Could not remove (rm -rf) " ++ (extractRunDirectory opts) ++ ".")
+                                   SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                                          error ("[" ++ (show currenttandd) ++ "] " 
+                                                                     ++ "Could not remove (rm -rf) " 
+                                                                     ++ (extractRunDirectory opts) ++ ".")
                                    SX.ExitSuccess   -> do --Print out successful copy.
+                                                          !currenttandd <- DTime.getZonedTime
                                                           SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                                             ++ "Successfully removed (rm -rf) " 
-                                                                             ++ (extractRunDirectory opts) ++ ".")
+                                                                            ++ "Successfully removed (rm -rf) " 
+                                                                            ++ (extractRunDirectory opts) ++ ".")
 
 {-------------------------------------------------------------------}
 
@@ -779,6 +845,7 @@ processArgsAndFiles (options,inputfiles) = do
                       createResultsDirectory decodedinputyaml
                       copyToResultsDirRemoveRunDir decodedinputyaml
                       --Cell Ranger Setup has finished successfully.
+                      !currenttandd <- DTime.getZonedTime
                       SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                                          ++ "Cell Ranger Setup has successfully finished.")
                       SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
