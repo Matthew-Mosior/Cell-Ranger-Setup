@@ -454,6 +454,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts = do
                                         SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                                                           ++ "Successfully constructed and submitted the above bsub command for " 
                                                           ++ x ++ " via LSF.")
+                                        --Recurse.
+                                        createAndSubmitBsubCommands xs opts
+                                        
        | DL.isInfixOf "10x_5'_FeatureBarcoding" y ||
          DL.isInfixOf "10x_SC_5'_V2_GEX" y &&
          (extractFeatureReferencePath opts) == Nothing
@@ -524,6 +527,8 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts = do
                                         SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
                                                           ++ "Successfully constructed and submitted the above bsub command for " 
                                                           ++ x ++ " via LSF.")
+                                        --Recurse.
+                                        createAndSubmitBsubCommands xs opts 
        | otherwise
        -> do --Create the bsub command.
              --Extract the run directory.
@@ -595,6 +600,8 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts = do
                                         SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                                                           ++ "Successfully constructed and submitted the above bsub command for " 
                                                           ++ x ++ " via LSF.")
+                                        --Recurse.
+                                        createAndSubmitBsubCommands xs opts
 
 {-----------------------------------------}
 
