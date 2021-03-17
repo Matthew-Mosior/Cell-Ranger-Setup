@@ -378,10 +378,9 @@ removeDupLibrariesCsv ((x,y,z):xs) opts = do
 --createAndSubmitBsubCommands -> This function will
 --create and submit bsub commands via LSF
 --based on configuration YAML.
-createAndSubmitBsubCommands :: [(String,String,String)] -> CRSConfig -> [Int] -> IO ()
-createAndSubmitBsubCommands []           _    _      = return ()
-createAndSubmitBsubCommands _            _    []     = return ()
-createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
+createAndSubmitBsubCommands :: [(String,String,String)] -> CRSConfig -> IO ()
+createAndSubmitBsubCommands []           _    = return ()
+createAndSubmitBsubCommands ((x,y,z):xs) opts = do
     !currenttandd <- DTime.getZonedTime
     if | DL.isInfixOf "10x_5'_FeatureBarcoding" y ||
          DL.isInfixOf "10x_SC_5'_V2_GEX" y &&
@@ -401,11 +400,10 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                              (extractLsfVariables opts)))) 
                                                           ++ "\")" ++ " " ++ 
                            "bsub" ++ " " ++
-                           "-notify" ++ " " ++
-                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "_" ++ x ++ " " ++
                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts)) 
-                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
-                           "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
+                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "_" ++ x ++ ".log" ++ " " ++
+                           "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))     ++  " " ++
                            "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                            "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
                            "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
@@ -427,11 +425,10 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                               (extractLsfVariables opts))))
                                                            ++ "\")" ++ " " ++
                             "bsub" ++ " " ++
-                            "-notify" ++ " " ++
-                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "_" ++ x ++ " " ++
                             "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
-                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
+                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "_" ++ x ++ ".log" ++ " " ++
+                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))     ++  " " ++
                             "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                             "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
                             "-g "  ++ (extractLsfJobGroup (extractLsfVariables opts))      ++  " " ++
@@ -475,10 +472,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                              (extractLsfVariables opts))))
                                                           ++ "\")" ++ " " ++
                            "bsub" ++ " " ++
-                           "-notify" ++ " " ++
-                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "_" ++ x ++ " " ++
                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
+                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "_" ++ x ++ ".log" ++ " " ++
                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                            "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                            "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -500,10 +496,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                               (extractLsfVariables opts))))
                                                            ++ "\")" ++ " " ++
                             "bsub" ++ " " ++
-                            "-notify" ++ " " ++
-                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "+" ++ x ++ " " ++
                             "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++ " " ++
+                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "_" ++ x ++ ".log" ++ " " ++
                             "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                             "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                             "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -545,10 +540,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                              (extractLsfVariables opts))))
                                                           ++ "\")" ++ " " ++
                            "bsub" ++ " " ++
-                           "-notify" ++ " " ++
-                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                           "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "_" ++ x ++ " " ++
                            "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++  " " ++
+                                  ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "_" ++ x ++ ".log" ++  " " ++
                            "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                            "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                            "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -572,9 +566,9 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts (a:as) = do
                                                            ++ "\")" ++ " " ++
                             "bsub" ++ " " ++
                             "-notify" ++ " " ++
-                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "[" ++ (show a) ++ "]" ++ " " ++
+                            "-J "  ++ (extractLsfJobName (extractLsfVariables opts)) ++ "_" ++ x ++ " " ++
                             "-oo " ++ (extractBsubOoDirectory (extractLsfVariables opts))
-                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "[" ++ (show a) ++ "]" ++ ".log" ++  " " ++
+                                   ++ (extractBsubOoPrefix (extractLsfVariables opts))  ++ "_" ++ x ++ ".log" ++  " " ++
                             "-M "  ++ (extractMemoryLimit (extractBsubMemory (extractLsfVariables opts)))      ++  " " ++
                             "-q "  ++ (extractLsfQueue (extractLsfVariables opts))         ++  " " ++
                             "-G "  ++ (extractLsfComputeGroup (extractLsfVariables opts))  ++  " " ++
@@ -616,7 +610,7 @@ waitOnJobsBwait opts = do
     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                       ++ "Using bwait to wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
                       ++ " to finish.")
-    (_,_,_,ph) <- SP.createProcess (SP.proc "bwait" ["-w","'ended(" ++ (extractLsfJobName (extractLsfVariables opts)) ++ ")'"])
+    (_,_,_,ph) <- SP.createProcess (SP.proc "bwait" ["-w","'ended(" ++ (extractLsfJobName (extractLsfVariables opts)) ++ "*)'"])
     ec <- SP.waitForProcess ph
     case ec of
         SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
@@ -741,7 +735,6 @@ processArgsAndFiles (options,inputfiles) = do
                       --and wait for the bsub commands to finish.
                       createAndSubmitBsubCommands (DL.tail nubuniqsamplesprotocolsfilenames) 
                                                   decodedinputyaml 
-                                                  [1..(DL.length (DL.tail nubuniqsamplesprotocolsfilenames))]
                       waitOnJobsBwait decodedinputyaml
                       --Once bsub commands finish, copy run directory to results directory,
                       --and remove run directory once successfully copied.
