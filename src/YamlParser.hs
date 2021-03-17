@@ -35,7 +35,6 @@ import Data.Maybe as DMaybe
 import Data.Yaml as DYaml
 import Data.Aeson as DAeson
 import Data.HashMap.Lazy as DHL
-import YamlParse.Applicative as YPA
 import Data.Map.Strict as DMap
 import Data.Text as DText
 import GHC.Generics
