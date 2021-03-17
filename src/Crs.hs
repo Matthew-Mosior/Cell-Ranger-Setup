@@ -383,12 +383,12 @@ setLSFEnvironmentVariables opts = do
     --Set LSF environment variables.
     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
                       ++ "Setting LSF_DOCKER_VOLUMES environment variable(s) specified in configuration YAML ...")
-    (_,_,_,ph) <- SP.createProcess (SP.proc "export" ["LSF_DOCKER_VOLUMES=$(echo \""
+    (_,_,_,ph) <- SP.createProcess (SP.proc "bash" ["-c","\"export LSF_DOCKER_VOLUMES=$(echo \""
                                                        ++ (DL.intercalate " "
                                                           (DL.map
                                                           (DText.unpack)
                                                           (extractLsfDockerVolumes
-                                                          (extractLsfVariables opts)))) ++ "\")"])
+                                                          (extractLsfVariables opts)))) ++ "\")\""])
     ec <- SP.waitForProcess ph
     case ec of
         SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
