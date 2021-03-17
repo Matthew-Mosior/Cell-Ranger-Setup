@@ -616,19 +616,19 @@ waitOnJobsBwait opts = do
     --Wait on jobs.
     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
                       ++ "Using bwait to wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                      ++ " to finish.")
-    (_,_,_,ph) <- SP.createProcess (SP.proc "bwait" ["-w","'ended(" ++ (extractLsfJobName (extractLsfVariables opts)) ++ "*)'"])
+                      ++ " jobs to finish.")
+    (_,_,_,ph) <- SP.createProcess (SP.shell ("bwait -w 'ended(" ++ (extractLsfJobName (extractLsfVariables opts)) ++ "*)'"))
     ec <- SP.waitForProcess ph
     case ec of
         SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
                                error ("[" ++ (show currenttandd) ++ "] " 
                                           ++ "Could not wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                          ++ " job to finish via bwait command.")
+                                          ++ " jobs to finish via bwait command.")
         SX.ExitSuccess   -> do --Print out created run directory.
                                !currenttandd <- DTime.getZonedTime
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                 ++ "Job " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                                 ++ " finished via bwait command.")
+                                                 ++ "All " ++ (extractLsfJobName (extractLsfVariables opts)) 
+                                                 ++ " jobs finished via bwait command.")
 
 {-------------------}
 
