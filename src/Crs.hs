@@ -610,25 +610,49 @@ createAndSubmitBsubCommands ((x,y,z):xs) opts = do
 
 --waitOnJobsBwait -> This function will
 --wait on the bjobs to finish.
-waitOnJobsBwait :: CRSConfig -> IO ()
-waitOnJobsBwait opts = do
+waitOnJobsBwait :: [(String,String,String)] -> CRSConfig -> IO ()
+waitOnJobsBwait []           _    = return ()
+waitOnJobsBwait xs opts = do
     !currenttandd <- DTime.getZonedTime
-    --Wait on jobs.
-    SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                      ++ "Using bwait to wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                      ++ " jobs to finish.")
-    (_,_,_,ph) <- SP.createProcess (SP.shell ("bwait -w 'ended(" ++ (extractLsfJobName (extractLsfVariables opts)) ++ "*)'"))
+    --Sleep for 20 seconds.
+    SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                      ++ "Sleep for 20 seconds to allow bsub commands to launch jobs in LSF scheduler.")
+    (_,_,_,ph) <- SP.createProcess (SP.shell ("sleep 20"))
     ec <- SP.waitForProcess ph
     case ec of
         SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
-                               error ("[" ++ (show currenttandd) ++ "] " 
-                                          ++ "Could not wait for " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                          ++ " jobs to finish via bwait command.")
+                               error ("[" ++ (show currenttandd) ++ "] "
+                                          ++ "Could not sleep for 20 seconds.") 
         SX.ExitSuccess   -> do --Print out created run directory.
                                !currenttandd <- DTime.getZonedTime
+                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                 ++ "Successfully slept for 20 seconds.")
                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                 ++ "All " ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                                 ++ " jobs finished via bwait command.")
+                                                 ++ "Using bwait to wait for " 
+                                                 ++ (extractLsfJobName (extractLsfVariables opts)) 
+                                                 ++ " jobs to finish.")
+                               
+                               SIO.putStrLn ("[ " ++ (show currenttandd) ++ "] " ++
+                                             "bwait -w \"" ++ 
+                                            (DL.intercalate " && " (DL.map (\(x,_,_) -> "ended(" ++ x ++ ")") xs)) 
+                                                           ++ "\"")
+                               (_,_,_,ph) <- SP.createProcess (SP.shell ("bwait -w \"" ++ 
+                                             (DL.intercalate " && " (DL.map (\(x,_,_) -> "ended(" ++ x ++ ")") xs)) 
+                                                           ++ "\""))
+                               ec <- SP.waitForProcess ph
+                               case ec of
+                                   SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                                          error ("[" ++ (show currenttandd) ++ "] " 
+                                                                     ++ "Could not wait for " 
+                                                                     ++ (extractLsfJobName (extractLsfVariables opts)) 
+                                                                     ++ " jobs to finish via bwait command.")
+                                   SX.ExitSuccess   -> do --Print out created run directory.
+                                                          !currenttandd <- DTime.getZonedTime
+                                                          SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
+                                                                            ++ "All " 
+                                                                            ++ (extractLsfJobName 
+                                                                               (extractLsfVariables opts)) 
+                                                                            ++ " jobs finished via bwait command.")
 
 {-------------------}
 
@@ -742,7 +766,8 @@ processArgsAndFiles (options,inputfiles) = do
                       --and wait for the bsub commands to finish.
                       createAndSubmitBsubCommands (DL.tail nubuniqsamplesprotocolsfilenames) 
                                                   decodedinputyaml 
-                      waitOnJobsBwait decodedinputyaml
+                      waitOnJobsBwait (DL.tail nubuniqsamplesprotocolsfilenames)
+                                      decodedinputyaml
                       --Once bsub commands finish, copy run directory to results directory,
                       --and remove run directory once successfully copied.
                       createResultsDirectory decodedinputyaml
