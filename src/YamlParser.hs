@@ -55,16 +55,17 @@ data CRSConfig = CRSConfig { samplemapcsv         :: Text
                            , cellrangeroptions    :: CellRangerOpts   
                            } deriving (Eq,Show,Read)
 
-data LSF = LSF { lsfdockervolumes   :: [Text]
-               , lsfjobgroup        :: Text
-               , lsfcomputegroup    :: Text
-               , lsfjobname         :: Text
-               , lsfqueue           :: Text
-               , bsuboodir          :: Text
-               , bsubooprefix       :: Text
-               , bsubdocker         :: Text
-               , bsubcores          :: Text
-               , bsubmemory         :: BsubMEM
+data LSF = LSF { lsfdockervolumes         :: [Text]
+               , lsfjobgroup              :: Text
+               , lsfcomputegroup          :: Text
+               , lsfjobname               :: Text
+               , lsfqueue                 :: Text
+               , lsfniosjobstatusinterval :: Maybe Text
+               , bsuboodir                :: Text
+               , bsubooprefix             :: Text
+               , bsubdocker               :: Text
+               , bsubcores                :: Text
+               , bsubmemory               :: BsubMEM
                } deriving (Eq,Ord,Show,Read)
 
 data BsubMEM = BsubMEM { memlimit     :: Text
@@ -76,7 +77,7 @@ data CellRangerOpts = CellRangerOpts { localmem   :: Text
                                      , localcores :: Text
                                      } deriving (Eq,Ord,Show,Read)
 
-instance FromJSON CRSConfig where
+instance DYaml.FromJSON CRSConfig where
     parseJSON (Object v) = parseCRSConfig v
     parseJSON _          = CA.empty
 
@@ -91,23 +92,24 @@ parseCRSConfig v = CRSConfig
     <*> v .:  "lsf_variables"
     <*> v .:  "cellranger_options"
 
-instance FromJSON LSF where
+instance DYaml.FromJSON LSF where
     parseJSON (Object v) = parseLSF v
     parseJSON _          = CA.empty
 
 parseLSF v = LSF
-    <$> v .: "lsf_docker_volumes"
-    <*> v .: "lsf_job_group"
-    <*> v .: "lsf_compute_group"
-    <*> v .: "lsf_job_name"
-    <*> v .: "lsf_queue"
-    <*> v .: "bsub_oo_directory"
-    <*> v .: "bsub_oo_prefix"
-    <*> v .: "bsub_docker"
-    <*> v .: "bsub_cores"
-    <*> v .: "bsub_memory"
+    <$> v .:  "lsf_docker_volumes"
+    <*> v .:  "lsf_job_group"
+    <*> v .:  "lsf_compute_group"
+    <*> v .:  "lsf_job_name"
+    <*> v .:  "lsf_queue"
+    <*> v .:? "lsf_nios_job_status_interval"
+    <*> v .:  "bsub_oo_directory"
+    <*> v .:  "bsub_oo_prefix"
+    <*> v .:  "bsub_docker"
+    <*> v .:  "bsub_cores"
+    <*> v .:  "bsub_memory"
 
-instance FromJSON BsubMEM where
+instance DYaml.FromJSON BsubMEM where
     parseJSON (Object v) = parseBsubMEM v
     parseJSON _          = CA.empty
 
@@ -116,7 +118,7 @@ parseBsubMEM v = BsubMEM
     <*> v .: "resource_requirement_select"
     <*> v .: "resource_requirement_rusage"
 
-instance FromJSON CellRangerOpts where
+instance DYaml.FromJSON CellRangerOpts where
     parseJSON (Object v) = parseCellRangerOpts v
     parseJSON _          = CA.empty
 
@@ -187,61 +189,67 @@ extractCellRangerOptions (CRSConfig _ _ _ _ _ _ _ _ x) = x
 --extract the string associated with
 --lsfdockervolumes.
 extractLsfDockerVolumes :: LSF -> [Text]
-extractLsfDockerVolumes (LSF x _ _ _ _ _ _ _ _ _) = x
+extractLsfDockerVolumes (LSF x _ _ _ _ _ _ _ _ _ _) = x
 
 --extractLsfJobGroup -> This function will
 --extract the string associated with
 --lsfjobgroup.
 extractLsfJobGroup :: LSF -> String
-extractLsfJobGroup (LSF _ x _ _ _ _ _ _ _ _) = DText.unpack x
+extractLsfJobGroup (LSF _ x _ _ _ _ _ _ _ _ _) = DText.unpack x
 
 --extractLsfComputeGroup -> This function will
 --extract the string associated with
 --lsfcomputegroup.
 extractLsfComputeGroup :: LSF -> String
-extractLsfComputeGroup (LSF _ _ x _ _ _ _ _ _ _) = DText.unpack x
+extractLsfComputeGroup (LSF _ _ x _ _ _ _ _ _ _ _) = DText.unpack x
 
 --extractLsfJobName -> This function will
 --extract the string associated with
 --lsfjobname.
 extractLsfJobName :: LSF -> String
-extractLsfJobName (LSF _ _ _ x _ _ _ _ _ _) = DText.unpack x
+extractLsfJobName (LSF _ _ _ x _ _ _ _ _ _ _) = DText.unpack x
 
 --extractLsfQueue -> This function will
 --extract the string associated with
 --lsfqueue.
 extractLsfQueue :: LSF -> String
-extractLsfQueue (LSF _ _ _ _ x _ _ _ _ _) = DText.unpack x
+extractLsfQueue (LSF _ _ _ _ x _ _ _ _ _ _) = DText.unpack x
+
+--extractLsfNiosJobStatusInterval -> This function will
+--extract the string associated with
+--lsfniosjobstatusinterval.
+extractLsfNiosJobStatusInterval :: LSF -> Maybe Text
+extractLsfNiosJobStatusInterval (LSF _ _ _ _ _ x _ _ _ _ _) = x
 
 --extractBsubOoDirectory -> This function will
 --extract the string associated with
 --bsuboodir.
 extractBsubOoDirectory :: LSF -> String
-extractBsubOoDirectory (LSF _ _ _ _ _ x _ _ _ _) = DText.unpack x
+extractBsubOoDirectory (LSF _ _ _ _ _ _ x _ _ _ _) = DText.unpack x
 
 --extractBsubOoPrefix -> This function will
 --extract the string associated with
 --bsubooprefix.
 extractBsubOoPrefix :: LSF -> String
-extractBsubOoPrefix (LSF _ _ _ _ _ _ x _ _ _) = DText.unpack x
+extractBsubOoPrefix (LSF _ _ _ _ _ _ _ x _ _ _) = DText.unpack x
 
 --extractBsubDocker -> This function will
 --extract the string associated with
 --bsubdocker.
 extractBsubDocker :: LSF -> String
-extractBsubDocker (LSF _ _ _ _ _ _ _ x _ _) = DText.unpack x
+extractBsubDocker (LSF _ _ _ _ _ _ _ _ x _ _) = DText.unpack x
 
 --extractBsubCores -> This function will
 --extract the string associated with
 --bsubcores.
 extractBsubCores :: LSF -> String
-extractBsubCores (LSF _ _ _ _ _ _ _ _ x _) = DText.unpack x
+extractBsubCores (LSF _ _ _ _ _ _ _ _ _ x _) = DText.unpack x
 
 --extractBsubMemory -> This function will
 --extract the string associated with
 --bsubmemory.
 extractBsubMemory :: LSF -> BsubMEM
-extractBsubMemory (LSF _ _ _ _ _ _ _ _ _ x) = x
+extractBsubMemory (LSF _ _ _ _ _ _ _ _ _ _ x) = x
 
 --extractMemoryLimit -> This function will
 --extract the string associated with
