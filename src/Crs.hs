@@ -614,45 +614,115 @@ waitOnJobsBwait :: [(String,String,String)] -> CRSConfig -> IO ()
 waitOnJobsBwait []           _    = return ()
 waitOnJobsBwait xs opts = do
     !currenttandd <- DTime.getZonedTime
-    --Sleep for 20 seconds.
-    SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                      ++ "Sleep for 20 seconds to allow bsub commands to launch jobs in LSF scheduler.")
-    (_,_,_,ph) <- SP.createProcess (SP.shell ("sleep 20"))
-    ec <- SP.waitForProcess ph
-    case ec of
-        SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
-                               error ("[" ++ (show currenttandd) ++ "] "
-                                          ++ "Could not sleep for 20 seconds.") 
-        SX.ExitSuccess   -> do --Print out created run directory.
-                               !currenttandd <- DTime.getZonedTime
-                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
-                                                 ++ "Successfully slept for 20 seconds.")
-                               SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                 ++ "Using bwait to wait for " 
-                                                 ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                                 ++ " jobs to finish.")
-                               
-                               SIO.putStrLn ("[ " ++ (show currenttandd) ++ "] " ++
-                                             "bwait -w \"" ++ 
-                                            (DL.intercalate " && " (DL.map (\(x,_,_) -> "ended(" ++ x ++ ")") xs)) 
-                                                           ++ "\"")
-                               (_,_,_,ph) <- SP.createProcess (SP.shell ("bwait -w \"" ++ 
-                                             (DL.intercalate " && " (DL.map (\(x,_,_) -> "ended(" ++ x ++ ")") xs)) 
-                                                           ++ "\""))
-                               ec <- SP.waitForProcess ph
-                               case ec of
-                                   SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
-                                                          error ("[" ++ (show currenttandd) ++ "] " 
-                                                                     ++ "Could not wait for " 
-                                                                     ++ (extractLsfJobName (extractLsfVariables opts)) 
-                                                                     ++ " jobs to finish via bwait command.")
-                                   SX.ExitSuccess   -> do --Print out created run directory.
-                                                          !currenttandd <- DTime.getZonedTime
-                                                          SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
-                                                                            ++ "All " 
-                                                                            ++ (extractLsfJobName 
-                                                                               (extractLsfVariables opts)) 
-                                                                            ++ " jobs finished via bwait command.")
+    if | (extractLsfNiosJobStatusInterval 
+         (extractLsfVariables opts)) /= Nothing
+       -> do --Sleep for 20 seconds.
+          SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                            ++ "Setting LSF environment varible LSF_NIOS_JOBSTATUS_INTERVAL.")
+          (_,_,_,ph) <- SP.createProcess (SP.shell ("export LSF_NIOS_JOBSTATUS_INTERVAL=" ++ (DText.unpack 
+                                                                                             (DMaybe.fromJust 
+                                                                                             (extractLsfNiosJobStatusInterval 
+                                                                                             (extractLsfVariables opts))))))
+          ec <- SP.waitForProcess ph
+          case ec of
+              SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                     error ("[" ++ (show currenttandd) ++ "] "
+                                                ++ "Could not set LSF_NIOS_JOBSTATUS_INTERVAL environment variable.")
+              SX.ExitSuccess   -> do --Print out created run directory.
+                                     !currenttandd <- DTime.getZonedTime
+                                     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                       ++ "Set LSF_NIOS_JOBSTATUS_INTERVAL environment variable to " 
+                                                       ++ (DText.unpack 
+                                                          (DMaybe.fromJust 
+                                                          (extractLsfNiosJobStatusInterval 
+                                                          (extractLsfVariables opts))))
+                                                       ++ ".")
+                                     --Sleep for 20 seconds.
+                                     SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                       ++ "Sleep for 20 seconds to allow bsub commands to launch jobs in LSF scheduler.")
+                                     (_,_,_,ph) <- SP.createProcess (SP.shell ("sleep 20"))
+                                     ec <- SP.waitForProcess ph
+                                     case ec of
+                                         SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                                                error ("[" ++ (show currenttandd) ++ "] "
+                                                                           ++ "Could not sleep for 20 seconds.") 
+                                         SX.ExitSuccess   -> do --Print out created run directory.
+                                                                !currenttandd <- DTime.getZonedTime
+                                                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                                  ++ "Successfully slept for 20 seconds.")
+                                                                SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
+                                                                                  ++ "Using bwait to wait for " 
+                                                                                  ++ (extractLsfJobName (extractLsfVariables opts)) 
+                                                                                  ++ " jobs to finish.")
+                                                                
+                                                                SIO.putStrLn ("[ " ++ (show currenttandd) ++ "] " ++
+                                                                              "bwait -w \"" ++ 
+                                                                             (DL.intercalate " && " (DL.map (\(x,_,_) 
+                                                                                                     -> "ended(" ++ x ++ ")") xs)) 
+                                                                                                    ++ "\"")
+                                                                (_,_,_,ph) <- SP.createProcess (SP.shell ("bwait -w \"" ++ 
+                                                                              (DL.intercalate " && " (DL.map (\(x,_,_) 
+                                                                                                      -> "ended(" ++ x ++ ")") xs)) 
+                                                                                                    ++ "\""))
+                                                                ec <- SP.waitForProcess ph
+                                                                case ec of
+                                                                    SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                                                                           error ("[" ++ (show currenttandd) ++ "] " 
+                                                                                                      ++ "Could not wait for " 
+                                                                                                      ++ (extractLsfJobName 
+                                                                                                         (extractLsfVariables opts)) 
+                                                                                                      ++ " jobs to finish via bwait command.")
+                                                                    SX.ExitSuccess   -> do --Print out created run directory.
+                                                                                           !currenttandd <- DTime.getZonedTime
+                                                                                           SIO.putStrLn ("[" ++ (show currenttandd) ++ "] " 
+                                                                                                             ++ "All " 
+                                                                                                             ++ (extractLsfJobName 
+                                                                                                                (extractLsfVariables opts)) 
+                                                                                                             ++ " jobs finished via bwait command.")
+       | otherwise
+       -> do !currenttandd <- DTime.getZonedTime
+             --Sleep for 20 seconds.
+             SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                               ++ "Sleep for 20 seconds to allow bsub commands to launch jobs in LSF scheduler.")
+             (_,_,_,ph) <- SP.createProcess (SP.shell ("sleep 20"))
+             ec <- SP.waitForProcess ph
+             case ec of
+                 SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                        error ("[" ++ (show currenttandd) ++ "] "
+                                                   ++ "Could not sleep for 20 seconds.")
+                 SX.ExitSuccess   -> do --Print out created run directory.
+                                        !currenttandd <- DTime.getZonedTime
+                                        SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                          ++ "Successfully slept for 20 seconds.")
+                                        SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                          ++ "Using bwait to wait for "
+                                                          ++ (extractLsfJobName (extractLsfVariables opts))
+                                                          ++ " jobs to finish.")
+
+                                        SIO.putStrLn ("[ " ++ (show currenttandd) ++ "] " ++
+                                                      "bwait -w \"" ++
+                                                     (DL.intercalate " && " (DL.map (\(x,_,_)
+                                                                             -> "ended(" ++ x ++ ")") xs))
+                                                                            ++ "\"")
+                                        (_,_,_,ph) <- SP.createProcess (SP.shell ("bwait -w \"" ++
+                                                      (DL.intercalate " && " (DL.map (\(x,_,_)
+                                                                              -> "ended(" ++ x ++ ")") xs))
+                                                                            ++ "\""))
+                                        ec <- SP.waitForProcess ph
+                                        case ec of
+                                            SX.ExitFailure _ -> do !currenttandd <- DTime.getZonedTime
+                                                                   error ("[" ++ (show currenttandd) ++ "] "
+                                                                              ++ "Could not wait for "
+                                                                              ++ (extractLsfJobName
+                                                                                 (extractLsfVariables opts))
+                                                                              ++ " jobs to finish via bwait command.")
+                                            SX.ExitSuccess   -> do --Print out created run directory.
+                                                                   !currenttandd <- DTime.getZonedTime
+                                                                   SIO.putStrLn ("[" ++ (show currenttandd) ++ "] "
+                                                                                     ++ "All "
+                                                                                     ++ (extractLsfJobName
+                                                                                        (extractLsfVariables opts))
+                                                                                     ++ " jobs finished via bwait command.") 
 
 {-------------------}
 
